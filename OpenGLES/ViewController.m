@@ -10,6 +10,7 @@
 @interface ViewController(){
     EAGLContext *context;
     GLKBaseEffect *cEffect;
+    int _angle;
 }
 @end
 
@@ -70,50 +71,51 @@
         -0.5, 0.5, 0.0f,    0.0f, 1.0f, //左上
         -0.5, -0.5, 0.0f,   0.0f, 0.0f, //左下
 
-//        //正面
-//        0.5, -0.5, 1.0f,    1.0f, 0.0f, //右下
-//        0.5, 0.5,  1.0f,    1.0f, 1.0f, //右上
-//        -0.5, 0.5, 1.0f,    0.0f, 1.0f, //左上
-//
-//        0.5, -0.5, 1.0f,    1.0f, 0.0f, //右下
-//        -0.5, 0.5, 1.0f,    0.0f, 1.0f, //左上
-//        -0.5, -0.5, 1.0f,   0.0f, 0.0f, //左下
-//
-//        //左面
-//        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-//        0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
-//        0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-//
-//        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-//        0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-//        0.5f, 0.0f, 1.0f,   0.0f, 0.0f, //左下
-//
-//            //右面
-//        -0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-//        -0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
-//        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-//
-//        -0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-//        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-//        -0.5f, 0.0f, 1.0f,   0.0f, 0.0f, //左下
-//
-//        //底面
-//        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-//        -0.5f, -0.5f,  0.0f,    1.0f, 1.0f, //右上
-//        -0.5f, -0.5f, 1.0f,    0.0f, 1.0f, //左上
-//
-//        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-//        -0.5f, -0.5f, 1.0f,    0.0f, 1.0f, //左上
-//        0.5f, -0.5f, 1.0f,   0.0f, 0.0f, //左下
-//
-//        //顶面
-//        0.5f, 0.5f, 0.0f,    1.0f, 0.0f, //右下
-//        -0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
-//        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-//
-//        0.5f, 0.5f, 0.0f,    1.0f, 0.0f, //右下
-//        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-//        0.5f, 0.5f, 1.0f,   0.0f, 0.0f, //左下
+        //正面
+        0.5, -0.5, 1.0f,    1.0f, 0.0f, //右下
+        0.5, 0.5,  1.0f,    1.0f, 1.0f, //右上
+        -0.5, 0.5, 1.0f,    0.0f, 1.0f, //左上
+
+        0.5, -0.5, 1.0f,    1.0f, 0.0f, //右下
+        -0.5, 0.5, 1.0f,    0.0f, 1.0f, //左上
+        -0.5, -0.5, 1.0f,   0.0f, 0.0f, //左下
+
+        //右面
+        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
+        0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
+        0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
+
+        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
+        0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
+        0.5f, -0.5f, 1.0f,   0.0f, 0.0f, //左下
+
+            //左面
+        -0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
+        -0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
+        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
+
+        -0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
+        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
+        -0.5f, -0.5f, 1.0f,   0.0f, 0.0f, //左下
+
+
+        //底面
+        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
+        -0.5f, -0.5f,  0.0f,    1.0f, 1.0f, //右上
+        -0.5f, -0.5f, 1.0f,    0.0f, 1.0f, //左上
+
+        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
+        -0.5f, -0.5f, 1.0f,    0.0f, 1.0f, //左上
+        0.5f, -0.5f, 1.0f,   0.0f, 0.0f, //左下
+
+        //顶面
+        0.5f, 0.5f, 0.0f,    1.0f, 0.0f, //右下
+        -0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
+        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
+
+        0.5f, 0.5f, 0.0f,    1.0f, 0.0f, //右下
+        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
+        0.5f, 0.5f, 1.0f,   0.0f, 0.0f, //左下
 
     };
 
@@ -165,14 +167,22 @@
     cEffect.texture2d0.enabled = GL_TRUE;
     cEffect.texture2d0.name = info.name;
 
+        // 透视投影矩阵
+    CGFloat aspect = fabs(self.view.bounds.size.width / self.view.bounds.size.height);
+    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0), aspect, 0.1, 100.0);
+    cEffect.transform.projectionMatrix = projectionMatrix;
+
 }
 #pragma mark -- GLKViewDelegate
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
    //清空颜色缓存区
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //开启深度测试
+    glEnable(GL_DEPTH_TEST);
 
     //准备绘制
+      [self update];
     [cEffect prepareToDraw];
 
     //开始绘制 两个三角形
@@ -186,6 +196,13 @@
 #define GL_TRIANGLE_STRIP                                0x0005
 #define GL_TRIANGLE_FAN                                  0x0006
      */
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 48);
 }
+- (void)update {
+    _angle = (_angle + 2) % 360;
+    GLKMatrix4 modelviewMatrix = GLKMatrix4Translate(GLKMatrix4Identity, 0, 0, -4.0);
+    modelviewMatrix = GLKMatrix4Rotate(modelviewMatrix, GLKMathDegreesToRadians(_angle), 0.3, 0.5, 0.7);
+    cEffect.transform.modelviewMatrix = modelviewMatrix;
+}
+
 @end
