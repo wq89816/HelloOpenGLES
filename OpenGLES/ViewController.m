@@ -167,9 +167,9 @@
     cEffect.texture2d0.enabled = GL_TRUE;
     cEffect.texture2d0.name = info.name;
 
-        // 透视投影矩阵
+        // 3D 透视投影矩阵
     CGFloat aspect = fabs(self.view.bounds.size.width / self.view.bounds.size.height);
-    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0), aspect, 0.1, 100.0);
+    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0), aspect, 0.1, 100.0);
     cEffect.transform.projectionMatrix = projectionMatrix;
 
 }
