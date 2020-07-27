@@ -1,2 +1,3 @@
 ### 程序运行效果
-![程序效果](./rotating cube.gif)
+
+![image](https://github.com/wq89816/HelloOpenGLES/blob/master/rotating%20cube.gif)
