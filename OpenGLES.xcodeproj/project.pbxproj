@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9A871B3E24D1194000EB8C24 /* CCViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9A871B3B24D1194000EB8C24 /* CCViewController.xib */; };
+		9A871B3F24D1194000EB8C24 /* CCViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A871B3D24D1194000EB8C24 /* CCViewController.m */; };
 		9AA68A2324CDC5B500BDA939 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9AA68A2224CDC5B500BDA939 /* AppDelegate.m */; };
 		9AA68A2624CDC5B500BDA939 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9AA68A2524CDC5B500BDA939 /* SceneDelegate.m */; };
 		9AA68A2924CDC5B500BDA939 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9AA68A2824CDC5B500BDA939 /* ViewController.m */; };
@@ -37,6 +39,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9A871B3B24D1194000EB8C24 /* CCViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CCViewController.xib; sourceTree = "<group>"; };
+		9A871B3C24D1194000EB8C24 /* CCViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCViewController.h; sourceTree = "<group>"; };
+		9A871B3D24D1194000EB8C24 /* CCViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCViewController.m; sourceTree = "<group>"; };
 		9AA68A1E24CDC5B500BDA939 /* OpenGLES.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenGLES.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AA68A2124CDC5B500BDA939 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		9AA68A2224CDC5B500BDA939 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -106,6 +111,9 @@
 		9AA68A2024CDC5B500BDA939 /* OpenGLES */ = {
 			isa = PBXGroup;
 			children = (
+				9A871B3C24D1194000EB8C24 /* CCViewController.h */,
+				9A871B3D24D1194000EB8C24 /* CCViewController.m */,
+				9A871B3B24D1194000EB8C24 /* CCViewController.xib */,
 				9AA68A5624CDC78500BDA939 /* meimei.jpg */,
 				9AA68A2124CDC5B500BDA939 /* AppDelegate.h */,
 				9AA68A2224CDC5B500BDA939 /* AppDelegate.m */,
@@ -247,6 +255,7 @@
 				9AA68A2E24CDC5B800BDA939 /* Assets.xcassets in Resources */,
 				9AA68A2C24CDC5B500BDA939 /* Main.storyboard in Resources */,
 				9AA68A5724CDC78500BDA939 /* meimei.jpg in Resources */,
+				9A871B3E24D1194000EB8C24 /* CCViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,6 +280,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A871B3F24D1194000EB8C24 /* CCViewController.m in Sources */,
 				9AA68A2924CDC5B500BDA939 /* ViewController.m in Sources */,
 				9AA68A2324CDC5B500BDA939 /* AppDelegate.m in Sources */,
 				9AA68A3424CDC5B800BDA939 /* main.m in Sources */,
@@ -445,6 +455,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 55883F973M;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
 				INFOPLIST_FILE = OpenGLES/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -462,6 +473,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 55883F973M;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
 				INFOPLIST_FILE = OpenGLES/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

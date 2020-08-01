@@ -1,208 +1,229 @@
-//
-//  ViewController.m
-//  OpenGLES
-//
-//  Created by zhangchi on 7/26/20.
-//  Copyright © 2020 Wangqiao. All rights reserved.
-//
+    //
+    //  ViewController.m
+    //  OpenGL_Cube
+    //
+    //  Created by zhangchi on 7/29/20.
+    //  Copyright © 2020 Wangqiao. All rights reserved.
+    //
 
+#import <GLKit/GLKit.h>
 #import "ViewController.h"
-@interface ViewController(){
-    EAGLContext *context;
-    GLKBaseEffect *cEffect;
-    int _angle;
-}
-@end
 
-@interface ViewController ()
+typedef struct {
+    GLKVector3 positionCoord;   //顶点坐标
+    GLKVector2 textureCoord;    //纹理坐标
+    GLKVector3 normal;          //法线
+} CCVertex;
+
+    // 顶点数:每个面有两个三角形组成,两三角形6个顶点,共6个面,立方体顶点个数是6*6= 36
+static NSInteger const kCoordCount = 36;
+
+@interface ViewController () <GLKViewDelegate>
+    //定义GLKView对象
+@property (nonatomic, strong) GLKView *glkView;
+    //定义GLKBaseEffect对象
+@property (nonatomic, strong) GLKBaseEffect *baseEffect;
+    //定义数据结构体数组
+@property (nonatomic, assign) CCVertex *vertices;
+    //定义定时器对象
+@property (nonatomic, strong) CADisplayLink *displayLink;
+    //记录旋转角度变量
+@property (nonatomic, assign) NSInteger angle;
+    //顶点缓冲区ID
+@property (nonatomic, assign) GLuint vertexBuffer;
 
 @end
 
 @implementation ViewController
 
+- (void)dealloc {
+        //当前上下文置为nil
+    if ([EAGLContext currentContext] == self.glkView.context) {
+        [EAGLContext setCurrentContext:nil];
+    }
+
+        //释放数据结构
+    if (_vertices) {
+        free(_vertices);
+        _vertices = nil;
+    }
+
+        //删除顶点缓存区
+    if (_vertexBuffer) {
+        glDeleteBuffers(1, &_vertexBuffer);
+        _vertexBuffer = 0;
+    }
+
+        //displayLink 失效
+    [self.displayLink invalidate];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+        //1.View背景色
+    self.view.backgroundColor = [UIColor blackColor];
 
-    //1.相关初始化
-    [self setUpConfig];
+        //2. OpenGL ES 相关初始化
+    [self commonInit];
 
-    //2.加载顶点/纹理坐标
-    [self setUpVertexData];
+        //3. 添加CADisplayLink定时器
+    [self addCADisplayLink];
 
-    //3.加载纹理
-    [self setUpTexture];
+}
+-(void) addCADisplayLink{
+
+        //CADisplayLink 类似定时器,提供一个周期性调用.属于QuartzCore.framework中.
+        //具体可以参考该博客 https://www.cnblogs.com/panyangjun/p/4421904.html
+    self.angle = 0;
+    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateAngle)];
+    [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 }
 
--(void)setUpConfig
-{
-    //初始化上下文
-    context = [[EAGLContext alloc]initWithAPI:kEAGLRenderingAPIOpenGLES3];
-    if(!context){
-        NSLog(@"创新ES上下文失败");
-    }
+- (void)commonInit {
+
+        //1.创建context
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+        //设置当前context
     [EAGLContext setCurrentContext:context];
 
-    //获取GLKView,设置contex
-    GLKView *view = (GLKView *)self.view;
-    view.context = context;
+        //2.创建GLKView并设置代理
+    CGRect frame = CGRectMake(0, 100, self.view.frame.size.width, self.view.frame.size.width);
+    self.glkView = [[GLKView alloc] initWithFrame:frame context:context];
+    self.glkView.backgroundColor = [UIColor clearColor];
+    self.glkView.delegate = self;
 
-    //配置视图创建的渲染缓存区.
-    view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
-    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-    view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
-
-    //设置背景颜色
-    glClearColor(1, 1.0, 1.0, 1.0);
-
-
-}
--(void)setUpVertexData
-{
-        //设置顶点数组(顶点坐标,纹理坐标)
-    GLfloat vertexData[] = {
+        //3.使用深度缓存
+    self.glkView.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+        //默认是(0, 1)，这里用于翻转 z 轴，使正方形朝屏幕外
+    glDepthRangef(1, 0);
 
 
-        //背面
-        0.5, -0.5, 0.0f,    1.0f, 0.0f, //右下
-        0.5, 0.5,  0.0f,    1.0f, 1.0f, //右上
-        -0.5, 0.5, 0.0f,    0.0f, 1.0f, //左上
 
-        0.5, -0.5, 0.0f,    1.0f, 0.0f, //右下
-        -0.5, 0.5, 0.0f,    0.0f, 1.0f, //左上
-        -0.5, -0.5, 0.0f,   0.0f, 0.0f, //左下
+        //4.将GLKView 添加self.view 上
+    [self.view addSubview:self.glkView];
 
-        //正面
-        0.5, -0.5, 1.0f,    1.0f, 0.0f, //右下
-        0.5, 0.5,  1.0f,    1.0f, 1.0f, //右上
-        -0.5, 0.5, 1.0f,    0.0f, 1.0f, //左上
+        //5.获取纹理图片
+    NSString *imagePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"meimei.jpg"];
+    UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
 
-        0.5, -0.5, 1.0f,    1.0f, 0.0f, //右下
-        -0.5, 0.5, 1.0f,    0.0f, 1.0f, //左上
-        -0.5, -0.5, 1.0f,   0.0f, 0.0f, //左下
-
-        //右面
-        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-        0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
-        0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-
-        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-        0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-        0.5f, -0.5f, 1.0f,   0.0f, 0.0f, //左下
-
-            //左面
-        -0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-        -0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
-        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-
-        -0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-        -0.5f, -0.5f, 1.0f,   0.0f, 0.0f, //左下
+        //6.设置纹理参数
+    NSDictionary *options = @{GLKTextureLoaderOriginBottomLeft : @(YES)};
+    GLKTextureInfo *textureInfo = [GLKTextureLoader textureWithCGImage:[image CGImage]
+                                                               options:options
+                                                                 error:NULL];
+        //7.使用baseEffect
+    self.baseEffect = [[GLKBaseEffect alloc] init];
+    self.baseEffect.texture2d0.name = textureInfo.name;
+    self.baseEffect.texture2d0.target = textureInfo.target;
+        //开启光照效果
+    self.baseEffect.light0.enabled = YES;
+        //漫反射颜色
+    self.baseEffect.light0.diffuseColor = GLKVector4Make(1, 1, 1, 1);
+        //光源位置
+    self.baseEffect.light0.position = GLKVector4Make(-0.5, -0.5, 5, 1);
 
 
-        //底面
-        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-        -0.5f, -0.5f,  0.0f,    1.0f, 1.0f, //右上
-        -0.5f, -0.5f, 1.0f,    0.0f, 1.0f, //左上
-
-        0.5f, -0.5f, 0.0f,    1.0f, 0.0f, //右下
-        -0.5f, -0.5f, 1.0f,    0.0f, 1.0f, //左上
-        0.5f, -0.5f, 1.0f,   0.0f, 0.0f, //左下
-
-        //顶面
-        0.5f, 0.5f, 0.0f,    1.0f, 0.0f, //右下
-        -0.5f, 0.5f,  0.0f,    1.0f, 1.0f, //右上
-        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-
-        0.5f, 0.5f, 0.0f,    1.0f, 0.0f, //右下
-        -0.5f, 0.5f, 1.0f,    0.0f, 1.0f, //左上
-        0.5f, 0.5f, 1.0f,   0.0f, 0.0f, //左下
-
-    };
-
-    //创建顶点缓存区标识符ID
-    GLuint bufferID;
-    glGenBuffers(1, &bufferID);
-
-    //绑定顶点缓存区
-    glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-
-    //将顶点数组的数据从内存copy到顶点缓存区(显存)中
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-
-    //打开读取通道
     /*
-     glVertexAttribPointer (GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr)
-
-     功能: 上传顶点数据到显存的方法（设置合适的方式从buffer里面读取数据）
-     参数列表:
-     index,指定要修改的顶点属性的索引值,例如
-     size, 每次读取数量。（如position是由3个（x,y,z）组成，而颜色是4个（r,g,b,a）,纹理则是2个.）
-     type,指定数组中每个组件的数据类型。可用的符号常量有GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT,GL_UNSIGNED_SHORT, GL_FIXED, 和 GL_FLOAT，初始值为GL_FLOAT。
-     normalized,指定当被访问时，固定点数据值是否应该被归一化（GL_TRUE）或者直接转换为固定点值（GL_FALSE）
-     stride,指定连续顶点属性之间的偏移量。如果为0，那么顶点属性会被理解为：它们是紧密排列在一起的。初始值为0
-     ptr指定一个指针，指向数组中第一个顶点属性的第一个组件。初始值为0
+     解释一下:
+     这里我们不复用顶点，使用每 3 个点画一个三角形的方式，需要 12 个三角形，则需要 36 个顶点
+     以下的数据用来绘制以（0，0，0）为中心，边长为 1 的立方体
      */
-    //顶点坐标
+
+        //8. 开辟顶点数据空间(数据结构SenceVertex 大小 * 顶点个数kCoordCount)
+    self.vertices = malloc(sizeof(CCVertex) * kCoordCount);
+
+        // 前面
+    self.vertices[0] = (CCVertex){{-0.5, 0.5, 0.5}, {0, 1}, {0, 0, 1}};
+    self.vertices[1] = (CCVertex){{-0.5, -0.5, 0.5}, {0, 0}, {0, 0, 1}};
+    self.vertices[2] = (CCVertex){{0.5, 0.5, 0.5}, {1, 1}, {0, 0, 1}};
+    self.vertices[3] = (CCVertex){{-0.5, -0.5, 0.5}, {0, 0}, {0, 0, 1}};
+    self.vertices[4] = (CCVertex){{0.5, 0.5, 0.5}, {1, 1}, {0, 0, 1}};
+    self.vertices[5] = (CCVertex){{0.5, -0.5, 0.5}, {1, 0}, {0, 0, 1}};
+
+        // 上面
+    self.vertices[6] = (CCVertex){{0.5, 0.5, 0.5}, {1, 1}, {0, 1, 0}};
+    self.vertices[7] = (CCVertex){{-0.5, 0.5, 0.5}, {0, 1}, {0, 1, 0}};
+    self.vertices[8] = (CCVertex){{0.5, 0.5, -0.5}, {1, 0}, {0, 1, 0}};
+    self.vertices[9] = (CCVertex){{-0.5, 0.5, 0.5}, {0, 1}, {0, 1, 0}};
+    self.vertices[10] = (CCVertex){{0.5, 0.5, -0.5}, {1, 0}, {0, 1, 0}};
+    self.vertices[11] = (CCVertex){{-0.5, 0.5, -0.5}, {0, 0}, {0, 1, 0}};
+
+        // 下面
+    self.vertices[12] = (CCVertex){{0.5, -0.5, 0.5}, {1, 1}, {0, -1, 0}};
+    self.vertices[13] = (CCVertex){{-0.5, -0.5, 0.5}, {0, 1}, {0, -1, 0}};
+    self.vertices[14] = (CCVertex){{0.5, -0.5, -0.5}, {1, 0}, {0, -1, 0}};
+    self.vertices[15] = (CCVertex){{-0.5, -0.5, 0.5}, {0, 1}, {0, -1, 0}};
+    self.vertices[16] = (CCVertex){{0.5, -0.5, -0.5}, {1, 0}, {0, -1, 0}};
+    self.vertices[17] = (CCVertex){{-0.5, -0.5, -0.5}, {0, 0}, {0, -1, 0}};
+
+        // 左面
+    self.vertices[18] = (CCVertex){{-0.5, 0.5, 0.5}, {1, 1}, {-1, 0, 0}};
+    self.vertices[19] = (CCVertex){{-0.5, -0.5, 0.5}, {0, 1}, {-1, 0, 0}};
+    self.vertices[20] = (CCVertex){{-0.5, 0.5, -0.5}, {1, 0}, {-1, 0, 0}};
+    self.vertices[21] = (CCVertex){{-0.5, -0.5, 0.5}, {0, 1}, {-1, 0, 0}};
+    self.vertices[22] = (CCVertex){{-0.5, 0.5, -0.5}, {1, 0}, {-1, 0, 0}};
+    self.vertices[23] = (CCVertex){{-0.5, -0.5, -0.5}, {0, 0}, {-1, 0, 0}};
+
+        // 右面
+    self.vertices[24] = (CCVertex){{0.5, 0.5, 0.5}, {1, 1}, {1, 0, 0}};
+    self.vertices[25] = (CCVertex){{0.5, -0.5, 0.5}, {0, 1}, {1, 0, 0}};
+    self.vertices[26] = (CCVertex){{0.5, 0.5, -0.5}, {1, 0}, {1, 0, 0}};
+    self.vertices[27] = (CCVertex){{0.5, -0.5, 0.5}, {0, 1}, {1, 0, 0}};
+    self.vertices[28] = (CCVertex){{0.5, 0.5, -0.5}, {1, 0}, {1, 0, 0}};
+    self.vertices[29] = (CCVertex){{0.5, -0.5, -0.5}, {0, 0}, {1, 0, 0}};
+
+        // 后面
+    self.vertices[30] = (CCVertex){{-0.5, 0.5, -0.5}, {0, 1}, {0, 0, -1}};
+    self.vertices[31] = (CCVertex){{-0.5, -0.5, -0.5}, {0, 0}, {0, 0, -1}};
+    self.vertices[32] = (CCVertex){{0.5, 0.5, -0.5}, {1, 1}, {0, 0, -1}};
+    self.vertices[33] = (CCVertex){{-0.5, -0.5, -0.5}, {0, 0}, {0, 0, -1}};
+    self.vertices[34] = (CCVertex){{0.5, 0.5, -0.5}, {1, 1}, {0, 0, -1}};
+    self.vertices[35] = (CCVertex){{0.5, -0.5, -0.5}, {1, 0}, {0, 0, -1}};
+
+        //开辟顶点缓存区
+    glGenBuffers(1, &_vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
+    GLsizeiptr bufferSizeBytes = sizeof(CCVertex) * kCoordCount;
+    glBufferData(GL_ARRAY_BUFFER, bufferSizeBytes, self.vertices, GL_STATIC_DRAW);
+
+        //顶点数据
     glEnableVertexAttribArray(GLKVertexAttribPosition);
-    glVertexAttribPointer(GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*5, (GLfloat *)NULL);
+    glVertexAttribPointer(GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(CCVertex), NULL + offsetof(CCVertex, positionCoord));
 
-    //纹理坐标
+        //纹理数据
     glEnableVertexAttribArray(GLKVertexAttribTexCoord0);
-    glVertexAttribPointer(GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*5, (GLfloat *)NULL+3);
+    glVertexAttribPointer(GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(CCVertex), NULL + offsetof(CCVertex, textureCoord));
+
+        //法线数据
+    glEnableVertexAttribArray(GLKVertexAttribNormal);
+    glVertexAttribPointer(GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, sizeof(CCVertex), NULL + offsetof(CCVertex, normal));
+
 
 }
--(void)setUpTexture
-{
 
-    //获取纹理图片路径
-    NSString *filePath = [[NSBundle mainBundle]pathForResource:@"meimei" ofType:@"jpg"];
+#pragma mark - GLKViewDelegate
+- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect {
 
-    //设置纹理参数
-    //纹理坐标原点是左下角,但是图片显示原点应该是左上角.
-    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:@(1),GLKTextureLoaderOriginBottomLeft, nil];
-    GLKTextureInfo *info = [GLKTextureLoader textureWithContentsOfFile:filePath options:options error:nil];
-
-    //使用苹果GLKit 提供GLKBaseEffect 完成着色器工作(顶点/片元)
-    cEffect = [[GLKBaseEffect alloc]init];
-    cEffect.texture2d0.enabled = GL_TRUE;
-    cEffect.texture2d0.name = info.name;
-
-        // 3D 透视投影矩阵
-    CGFloat aspect = fabs(self.view.bounds.size.width / self.view.bounds.size.height);
-    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0), aspect, 0.1, 100.0);
-    cEffect.transform.projectionMatrix = projectionMatrix;
-
-}
-#pragma mark -- GLKViewDelegate
-- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
-{
-   //清空颜色缓存区
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //开启深度测试
+        //1.开启深度测试
     glEnable(GL_DEPTH_TEST);
+        //2.清除颜色缓存区&深度缓存区
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //3.准备绘制
+    [self.baseEffect prepareToDraw];
+        //4.绘图
+    glDrawArrays(GL_TRIANGLES, 0, kCoordCount);
 
-    //准备绘制
-      [self update];
-    [cEffect prepareToDraw];
-
-    //开始绘制 两个三角形
-    /*
-     BeginMode 图元组成模式
-#define GL_POINTS                                        0x0000
-#define GL_LINES                                         0x0001
-#define GL_LINE_LOOP                                     0x0002
-#define GL_LINE_STRIP                                    0x0003
-#define GL_TRIANGLES                                     0x0004
-#define GL_TRIANGLE_STRIP                                0x0005
-#define GL_TRIANGLE_FAN                                  0x0006
-     */
-    glDrawArrays(GL_TRIANGLES, 0, 48);
 }
-- (void)update {
-    _angle = (_angle + 2) % 360;
-    GLKMatrix4 modelviewMatrix = GLKMatrix4Translate(GLKMatrix4Identity, 0, 0, -4.0);
-    modelviewMatrix = GLKMatrix4Rotate(modelviewMatrix, GLKMathDegreesToRadians(_angle), 0.3, 0.5, 0.7);
-    cEffect.transform.modelviewMatrix = modelviewMatrix;
+
+#pragma mark - update
+- (void)updateAngle {
+
+        //1.计算旋转度数
+    self.angle = (self.angle + 5) % 360;
+        //2.修改baseEffect.transform.modelviewMatrix
+    self.baseEffect.transform.modelviewMatrix = GLKMatrix4MakeRotation(GLKMathDegreesToRadians(self.angle), 0.3, 1, 0.7);
+        //3.重新渲染
+    [self.glkView display];
 }
 
 @end
